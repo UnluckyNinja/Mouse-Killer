@@ -12,7 +12,7 @@ public class MouseKiller extends Game {
 
     public static void main(String[] args) {
         LwjglApplicationConfiguration cfg = new LwjglApplicationConfiguration();
-        cfg.title = "Drop";
+        cfg.title = "MouseKiller";
         cfg.width = width;
         cfg.height = height;
         cfg.useGL20 = true;
