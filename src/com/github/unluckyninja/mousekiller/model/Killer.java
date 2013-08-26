@@ -21,6 +21,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+import com.github.unluckyninja.mousekiller.MouseKiller;
 
 /**
  *
@@ -28,31 +29,30 @@ import com.badlogic.gdx.math.Vector2;
  */
 public class Killer {
 
-    private static final TextureRegion defaultTex = new TextureRegion(new Texture(Gdx.files.internal("res/killer/cursor.png")));
+    private static final TextureRegion defaultTex = new TextureRegion(new Texture(Gdx.files.internal("res/textures/font/ascii.png")));
     private TextureRegion texture;
-    private Vector2 coords = new Vector2(0, 0);
-
+    private Vector2 coords;
+    private MouseKiller mk;
+    
     public Killer() {
-        texture = defaultTex;
+        this(0, 0, defaultTex);
     }
 
     public Killer(TextureRegion texture) {
+        this(0, 0, texture);
+    }
+    
+    public Killer(float x, float y) {
+        this(x, y, defaultTex);
+    }
+    
+    public Killer(float x, float y,TextureRegion texture) {
         this.texture = texture;
         if (texture == null) {
             this.texture = defaultTex;
         }
-    }
-    
-    public Killer(float x, float y) {
-        texture = defaultTex;
-        coords.x = x;
-        coords.y = y;
-    }
-    
-    public Killer(float x, float y,TextureRegion texture) {
-        texture = defaultTex;
-        coords.x = x;
-        coords.y = y;
+        coords = new Vector2(x, y);
+        mk = MouseKiller.getInstance();
     }
 
     public TextureRegion getTexture() {

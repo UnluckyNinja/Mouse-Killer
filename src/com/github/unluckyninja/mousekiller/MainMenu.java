@@ -20,13 +20,17 @@ package com.github.unluckyninja.mousekiller;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Mesh;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.VertexAttribute;
-import com.badlogic.gdx.graphics.VertexAttributes.Usage;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.TimeUtils;
+import java.util.HashSet;
+import java.util.Iterator;
 
 /**
  *
@@ -34,33 +38,88 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
  */
 public class MainMenu implements Screen {
 
-    Music bgm;
-    SpriteBatch batch;
-    OrthographicCamera camera;
     MouseKiller mk;
+    Music bgm;
+    public OrthographicCamera camera;
+    Stage stage;
 
     public MainMenu(MouseKiller mk, SpriteBatch batch) {
         this.mk = mk;
         bgm = Gdx.audio.newMusic(Gdx.files.internal("HeyThere1.ogg"));
         bgm.setLooping(true);
-        this.batch = batch;
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 1024, 768);
-    }
+        stage = new Stage(MouseKiller.width, MouseKiller.height, true, mk.batch);
 
+        bodyDef.position.set(20, 20);
+        bodyDef.type = BodyDef.BodyType.KinematicBody;
+        bodyDef.linearDamping = 0;
+        box.setAsBox(2, 2);
+
+        ShaderProgram.pedantic = false;
+        
+    }
+    BodyDef bodyDef = new BodyDef();
+    PolygonShape box = new PolygonShape();
+    long lastshottime = 0;
+    private int i;
     @Override
     public void render(float delta) {
-        Gdx.gl20.glClearColor(1, 1, 1, 1);
-        Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-        batch.setProjectionMatrix(camera.combined);
-        batch.begin();
-        batch.draw(mk.killer.getTexture(), mk.killer.getCoords().x, mk.killer.getCoords().y-mk.killer.getTexture().getRegionHeight());
-        batch.end();
+        //game logic
+//        logics(delta);
+        //graphics
+        graphics(delta);
     }
 
     @Override
     public void resize(int width, int height) {
         camera.setToOrtho(false, width, height);
+    }
+
+    private void logics(float delta) {
+        if (TimeUtils.millis() - lastshottime >= 200) {
+            lastshottime = TimeUtils.millis();
+            Body body = mk.world.createBody(bodyDef);
+            body.setLinearVelocity(5 * MathUtils.cos(i), 5 * MathUtils.sin(i++));
+            body.createFixture(box, 1);
+        }
+        Array<Body> list = new Array<>();
+//        mk.world.getBodies(list);
+        HashSet<Body> set = new HashSet<>();
+        for (Iterator<Body> it = list.iterator(); it.hasNext();) {
+            Body body = it.next();
+            Vector2 vec = body.getWorldCenter();
+            boolean remove = false;
+            float xdiffer = vec.x - 20;
+            if (xdiffer >= 3 || xdiffer < -3) {
+                remove = true;
+            }
+            float ydiffer = vec.y - 20;
+            if (!remove && (ydiffer >= 3 || ydiffer < -3)) {
+                remove = true;
+            }
+            if (remove) {
+                set.add(body);
+            }
+        }
+        for (Body body : set) {
+            mk.world.destroyBody(body);
+        }
+//        camera.position.set(mk.killer.getCoords().x, mk.killer.getCoords().y, 0);
+//        camera.update();
+    }
+
+    
+    //called for drawing. should it be the beginning of all drawings? I dont know.
+    private void graphics(float delta) {
+        Gdx.gl20.glClearColor(0, 1, 1, 1);
+        Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+        camera.update();
+        mk.batch.setProjectionMatrix(camera.combined);
+        mk.batch.begin();
+        if (Gdx.input.isCursorCatched()) {
+            mk.batch.draw(mk.killer.getTexture(), mk.killer.getCoords().x, mk.killer.getCoords().y - mk.killer.getTexture().getRegionHeight());
+        }
+        mk.batch.end();
     }
 
     @Override
@@ -83,42 +142,9 @@ public class MainMenu implements Screen {
     @Override
     public void dispose() {
         bgm.dispose();
-    }
-
-    public Mesh createFullScreenQuad() {
-
-        float[] verts = new float[20];
-        int i = 0;
-
-        verts[i++] = -1; // x1
-        verts[i++] = -1; // y1
-        verts[i++] = 0;
-        verts[i++] = 0f; // u1
-        verts[i++] = 0f; // v1
-
-        verts[i++] = 1f; // x2
-        verts[i++] = -1; // y2
-        verts[i++] = 0;
-        verts[i++] = 1f; // u2
-        verts[i++] = 0f; // v2
-
-        verts[i++] = 1f; // x3
-        verts[i++] = 1f; // y2
-        verts[i++] = 0;
-        verts[i++] = 1f; // u3
-        verts[i++] = 1f; // v3
-
-        verts[i++] = -1; // x4
-        verts[i++] = 1f; // y4
-        verts[i++] = 0;
-        verts[i++] = 0f; // u4
-        verts[i++] = 1f; // v4
-
-        Mesh mesh = new Mesh(true, 4, 0, // static mesh with 4 vertices and no indices
-                new VertexAttribute(Usage.Position, 3, ShaderProgram.POSITION_ATTRIBUTE),
-                new VertexAttribute(Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + "0"));
-
-        mesh.setVertices(verts);
-        return mesh;
+        box.dispose();
+        stage.dispose();
+        mk.killer.getTexture().getTexture().dispose();
+        
     }
 }

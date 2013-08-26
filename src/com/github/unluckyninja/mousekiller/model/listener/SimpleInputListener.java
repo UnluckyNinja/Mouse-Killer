@@ -19,7 +19,8 @@ package com.github.unluckyninja.mousekiller.model.listener;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.InputAdapter;
+import com.github.unluckyninja.mousekiller.MainMenu;
 import com.github.unluckyninja.mousekiller.MouseKiller;
 import com.github.unluckyninja.mousekiller.model.Killer;
 
@@ -27,7 +28,7 @@ import com.github.unluckyninja.mousekiller.model.Killer;
  *
  * @author UnluckyNinja
  */
-public class SimpleInputListener implements InputProcessor {
+public class SimpleInputListener extends InputAdapter {
 
     Killer killer;
 
@@ -41,7 +42,10 @@ public class SimpleInputListener implements InputProcessor {
             Gdx.app.exit();
             return true;
         }
-        return false;
+        if (keycode == Keys.ALT_LEFT) {
+            Gdx.input.setCursorCatched(!Gdx.input.isCursorCatched());
+        }
+        return true;
     }
 
     @Override
@@ -80,6 +84,9 @@ public class SimpleInputListener implements InputProcessor {
     }
 
     private boolean onMoved(int screenX, int screenY) {
+        System.out.println(screenX+", "+screenY);
+        float oldx = killer.getCoords().x;
+        float oldy = killer.getCoords().y;
         int x = screenX;
         int y = screenY;
         if (x < 0) {
@@ -92,8 +99,9 @@ public class SimpleInputListener implements InputProcessor {
         } else if (y >= MouseKiller.getHeight()) {
             y = MouseKiller.getHeight();
         }
-        killer.setCoords(x, MouseKiller.getHeight() - y);
-        Gdx.input.setCursorPosition(x, MouseKiller.getHeight() - y);
+        y = MouseKiller.getHeight() - y;
+        killer.setCoords(x, y);
+        Gdx.input.setCursorPosition(x, y);
         return true;
     }
 }
