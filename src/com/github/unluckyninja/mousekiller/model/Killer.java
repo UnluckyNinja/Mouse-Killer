@@ -29,7 +29,7 @@ import com.github.unluckyninja.mousekiller.MouseKiller;
  */
 public class Killer {
 
-    private static final TextureRegion defaultTex = new TextureRegion(new Texture(Gdx.files.internal("res/textures/font/ascii.png")));
+    private static final TextureRegion defaultTex = new TextureRegion(new Texture(Gdx.files.internal("res/killer/cursor.png")));
     private TextureRegion texture;
     private Vector2 coords;
     private MouseKiller mk;
